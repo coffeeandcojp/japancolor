@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>にっぽんのいろ 日めくり</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EAF4FC; --ink:#2A2724; --ink-soft:rgba(42,39,36,.62); --line:rgba(42,39,36,.28);
+  /* 論理ビューポート単位。Fire TV 用の回転モードでは JS が入れ替える */
+  --vw:1vw; --vh:1vh; --vmin:1vmin;
+  --dx:0px; --dy:0px; --rot:none;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%;background:var(--bg)}
+body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+  transition:background-color 2.4s ease,color 2.4s ease;cursor:none;
+  -webkit-font-smoothing:antialiased;font-feature-settings:"palt"}
+body.dark{--ink:#F4F1EA;--ink-soft:rgba(244,241,234,.66);--line:rgba(244,241,234,.30)}
+#stage{position:absolute;top:0;left:0;width:100%;height:100%;
+  transform:var(--rot) translate(var(--dx),var(--dy));transform-origin:0 0;
+  transition:transform 60s linear}
+body.rot #stage{width:100vh;height:100vw;transition:none}
+
+/* ---------- 共通 ---------- */
+.t{transition:opacity 1.8s ease,filter 1.8s ease}
+#title{position:absolute;display:flex;align-items:center}
+#name,#yomi{margin:0;display:flex;flex-direction:column;align-items:center}
+#name{font-weight:500;line-height:1}
+#name span{display:block;line-height:1.12}
+#yomi{color:var(--ink-soft)}
+#yomi span{display:block;line-height:1.5}
+#name span,#yomi span{transition:opacity 1.6s ease,filter 1.6s ease,transform 1.6s ease;
+  transition-delay:calc(var(--i,0)*110ms)}
+#yomi span.r{transform:rotate(90deg)}
+#stage.out .t{opacity:0;filter:blur(10px)}
+#stage.out #name span,#stage.out #yomi span{opacity:0;filter:blur(14px);transform:translateY(.12em)}
+#stage.out #yomi span.r{transform:rotate(90deg) translateX(.12em)}
+#koyomi{position:absolute;margin:0}
+#date{letter-spacing:.06em;line-height:1.3}
+#clock{font-weight:400;letter-spacing:.04em;line-height:1.05;font-variant-numeric:tabular-nums;
+  transition:opacity .9s ease,filter .9s ease}
+#clock.swap{opacity:0;filter:blur(6px)}
+#hex{position:absolute;letter-spacing:.18em;color:var(--ink-soft)}
+#sekki{position:absolute;margin:0;border-left:1px solid var(--line)}
+#sekki .s{letter-spacing:.14em;line-height:1.35}
+#sekki .s small{font-size:.5em;letter-spacing:.1em;color:var(--ink-soft);margin-left:.6em}
+#sekki .k{letter-spacing:.12em;line-height:1.35;margin-top:.2em}
+#sekki .k small{display:block;font-size:.42em;letter-spacing:.16em;color:var(--ink-soft);margin-top:.3em}
+#moon{position:absolute;margin:0}
+#moon svg{height:auto;display:block}
+#moon .mn{letter-spacing:.2em}
+#moon .ma{letter-spacing:.12em;color:var(--ink-soft);margin-top:.3em}
+#hint{position:absolute;left:50%;transform:translateX(-50%);letter-spacing:.2em;color:var(--ink-soft);
+  opacity:0;transition:opacity .6s;white-space:nowrap}
+#hint.on{opacity:1}
+
+/* ---------- 横画面 ---------- */
+body.land #title{right:calc(8*var(--vw));top:50%;transform:translateY(-50%);gap:calc(2.6*var(--vmin))}
+body.land #name{font-size:clamp(64px,calc(17*var(--vmin)),260px);letter-spacing:.14em}
+body.land #yomi{font-size:clamp(16px,calc(3.2*var(--vmin)),40px)}
+body.land #koyomi{left:calc(6*var(--vw));top:calc(6*var(--vmin))}
+body.land #date{font-size:clamp(20px,calc(4*var(--vmin)),54px)}
+body.land #clock{font-size:clamp(48px,calc(10*var(--vmin)),150px)}
+body.land #hex{right:calc(8*var(--vw));bottom:calc(5*var(--vmin));font-size:clamp(12px,calc(1.8*var(--vmin)),22px)}
+body.land #sekki{left:calc(6*var(--vw));bottom:calc(5*var(--vmin));padding-left:calc(1.6*var(--vmin))}
+body.land #sekki .s{font-size:clamp(18px,calc(3.4*var(--vmin)),46px)}
+body.land #sekki .k{font-size:clamp(22px,calc(4.2*var(--vmin)),58px)}
+body.land #moon{left:50%;bottom:calc(5*var(--vmin));transform:translateX(-50%);text-align:center}
+body.land #moon svg{width:clamp(56px,calc(11*var(--vmin)),150px);margin:0 auto calc(.8*var(--vmin))}
+body.land #moon .mn{font-size:clamp(14px,calc(2.6*var(--vmin)),34px)}
+body.land #moon .ma{font-size:clamp(11px,calc(1.7*var(--vmin)),22px)}
+body.land #hint{top:calc(4*var(--vmin));font-size:clamp(11px,calc(1.6*var(--vmin)),18px)}
+
+/* ---------- 縦画面（9:16 の壁掛け）---------- */
+body.port #title{left:50%;top:50%;transform:translate(-50%,-50%);flex-direction:row-reverse;
+  gap:calc(4*var(--vw))}
+/* 文字数 --n に応じて縮め、短い名前は幅基準で最大化 */
+body.port #name{font-size:min(calc(28*var(--vw)),calc(48*var(--vh)/var(--n,3)));letter-spacing:.1em}
+body.port #name span{line-height:1.1}
+body.port #yomi{font-size:clamp(16px,calc(4.4*var(--vw)),48px)}
+body.port #koyomi{left:calc(8*var(--vw));top:calc(6*var(--vh))}
+body.port #date{font-size:clamp(18px,calc(4.4*var(--vw)),48px)}
+body.port #clock{font-size:clamp(56px,calc(17*var(--vw)),190px)}
+body.port #hex{right:calc(8*var(--vw));top:calc(6.4*var(--vh));font-size:clamp(12px,calc(2.6*var(--vw)),24px);
+  writing-mode:vertical-rl}
+body.port #sekki{left:calc(8*var(--vw));bottom:calc(6*var(--vh));padding-left:calc(3*var(--vw))}
+body.port #sekki .s{font-size:clamp(18px,calc(5*var(--vw)),54px)}
+body.port #sekki .k{font-size:clamp(22px,calc(6.4*var(--vw)),72px)}
+body.port #moon{right:calc(8*var(--vw));bottom:calc(6*var(--vh));text-align:right}
+body.port #moon svg{width:clamp(56px,calc(16*var(--vw)),170px);margin:0 0 calc(1*var(--vh)) auto}
+body.port #moon .mn{font-size:clamp(14px,calc(3.6*var(--vw)),40px)}
+body.port #moon .ma{font-size:clamp(11px,calc(2.4*var(--vw)),26px)}
+body.port #hint{top:calc(2.4*var(--vh));font-size:clamp(11px,calc(2.4*var(--vw)),20px)}
+
+@media (prefers-reduced-motion:reduce){body,#stage,.t,#name span,#yomi span,#clock{transition:none}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="hint"></div>
+  <div id="koyomi"><div id="date" class="t"></div><div id="clock" class="t"></div></div>
+  <div id="title"><p id="yomi"></p><h1 id="name"></h1></div>
+  <div id="hex" class="t"></div>
+  <div id="sekki" class="t"><div class="s"></div><div class="k"></div></div>
+  <div id="moon" class="t"><svg viewBox="-52 -52 104 104"></svg><div class="mn"></div><div class="ma"></div></div>
+</div>
+<script>
+// [名前, 読み, HEX] を月ごとに配列化。日付 = (日-1) % 配列長
+const COLORS = {
+1:[["白練","しろねり","#F3F3F2"],["鈍色","にびいろ","#727171"],["銀鼠","ぎんねず","#AFAFB0"],["消炭色","けしずみいろ","#524E4D"],["墨","すみ","#595857"],["松葉色","まつばいろ","#839B5C"],["常磐色","ときわいろ","#007B43"],["千歳緑","ちとせみどり","#316745"],["老竹色","おいたけいろ","#769164"],["紅梅色","こうばいいろ","#F2A0A1"],["薄紅梅","うすこうばい","#E597B2"],["深緋","こきひ","#C9171E"],["猩々緋","しょうじょうひ","#E2041B"],["黄金","こがね","#E6B422"],["銀色","ぎんいろ","#A9A9A9"],["白鼠","しろねず","#DCDDDD"],["藍鉄","あいてつ","#393F4C"],["御召茶","おめしちゃ","#43676B"],["藍鼠","あいねず","#6C848D"],["生成り色","きなりいろ","#FBFAF5"],["朱色","しゅいろ","#EB6101"],["紺色","こんいろ","#223A70"],["紫紺","しこん","#460E44"],["鉄紺","てつこん","#17184B"],["黒橡","くろつるばみ","#544A47"],["濡羽色","ぬればいろ","#000B00"],["白磁","はくじ","#F8FBF8"],["胡粉色","ごふんいろ","#FFFFFC"],["卯の花色","うのはないろ","#F7FCFE"],["藍白","あいじろ","#EBF6F7"],["鉛色","なまりいろ","#7B7C7D"]],
+2:[["梅鼠","うめねず","#C099A0"],["梅紫","うめむらさき","#AA4C8F"],["一斤染","いっこんぞめ","#F5B1AA"],["桜鼠","さくらねず","#E9DFE5"],["薄紅","うすべに","#F0908D"],["桃色","ももいろ","#F09199"],["撫子色","なでしこいろ","#EEBBCB"],["若菜色","わかないろ","#D8E698"],["萌黄","もえぎ","#AACF53"],["若草色","わかくさいろ","#C3D825"],["柳鼠","やなぎねず","#C8D5BB"],["薄雲鼠","うすくもねず","#D4DCDA"],["鶯色","うぐいすいろ","#928C36"],["鶯茶","うぐいすちゃ","#715C1F"],["利休鼠","りきゅうねず","#888E7E"],["灰桜","はいざくら","#E8D3D1"],["灰白色","かいはくしょく","#E5E4E6"],["深川鼠","ふかがわねず","#97A791"],["素鼠","すねず","#9FA0A0"],["藤鼠","ふじねず","#A6A5C4"],["鴇色","ときいろ","#F4B3C2"],["珊瑚色","さんごいろ","#F5B199"],["蘇芳","すおう","#9E3D3F"],["今様色","いまよういろ","#D0576B"],["韓紅","からくれない","#E95464"],["退紅","あらぞめ","#D69090"],["紅色","べにいろ","#D7003A"],["金糸雀色","かなりあいろ","#EBD842"],["中紅","なかべに","#C53D43"]],
+3:[["桜色","さくらいろ","#FEF4F4"],["薄桜","うすざくら","#FDEFF2"],["桃花色","ももはないろ","#E198B4"],["若緑","わかみどり","#98D98E"],["若葉色","わかばいろ","#B9D08B"],["萌葱色","もえぎいろ","#006E54"],["若芽色","わかめいろ","#E0EBAF"],["柳色","やなぎいろ","#A8C97F"],["裏葉色","うらはいろ","#C1D8AC"],["白緑","びゃくろく","#D6E9CA"],["薄緑","うすみどり","#69B076"],["浅緑","あさみどり","#88CB7F"],["早苗色","さなえいろ","#86B81B"],["菜種油色","なたねゆいろ","#A69425"],["黄水仙","きずいせん","#F8E58C"],["山吹色","やまぶきいろ","#F8B500"],["鬱金色","うこんいろ","#FABF14"],["花葉色","はなばいろ","#FBD26B"],["藤色","ふじいろ","#BBBCDE"],["藤紫","ふじむらさき","#A59ACA"],["薄色","うすいろ","#A89DAC"],["紫苑色","しおんいろ","#867BA9"],["淡藤色","あわふじいろ","#BBC8E6"],["東雲色","しののめいろ","#F19072"],["紅緋","べにひ","#E83929"],["青磁色","せいじいろ","#7EBEAB"],["白藍","しらあい","#C1E4E9"],["甕覗","かめのぞき","#A2D7DD"],["秘色色","ひそくいろ","#ABCED8"],["水浅葱","みずあさぎ","#80ABA9"],["勿忘草色","わすれなぐさいろ","#89C3EB"]],
+4:[["牡丹色","ぼたんいろ","#E7609E"],["躑躅色","つつじいろ","#E95295"],["菖蒲色","あやめいろ","#CC7EB1"],["杜若色","かきつばたいろ","#3E62AD"],["藤黄","とうおう","#F7C114"],["菜の花色","なのはないろ","#FFEC47"],["若竹色","わかたけいろ","#68BE8D"],["新橋色","しんばしいろ","#59B9C6"],["浅葱色","あさぎいろ","#00A3AF"],["花浅葱","はなあさぎ","#2A83A2"],["苗色","なえいろ","#B0CA71"],["柳染","やなぎぞめ","#93B881"],["若苗色","わかなえいろ","#C7DC68"],["鶸色","ひわいろ","#D7CF3A"],["鶸萌黄","ひわもえぎ","#82AE46"],["黄檗色","きはだいろ","#FEF263"],["刈安色","かりやすいろ","#F5E56B"],["淡紅藤","あわべにふじ","#E6CDE3"],["半色","はしたいろ","#A69ABD"],["江戸紫","えどむらさき","#745399"],["京紫","きょうむらさき","#9A4C99"],["二藍","ふたあい","#915C8B"],["紅藤色","べにふじいろ","#CCA6BF"],["石竹色","せきちくいろ","#E5ABBE"],["薄柿","うすがき","#D4ACAD"],["黄唐茶","きがらちゃ","#B98C46"],["蒲公英色","たんぽぽいろ","#FFD900"],["山葵色","わさびいろ","#A8BF93"],["青丹","あおに","#99AB4E"],["藍色","あいいろ","#165E83"]],
+5:[["楝色","おうちいろ","#9B90C2"],["薄葡萄","うすぶどう","#C0A2C7"],["常磐緑","ときわみどり","#028760"],["緑","みどり","#3EB370"],["草色","くさいろ","#7B8D42"],["苔色","こけいろ","#69821B"],["木賊色","とくさいろ","#3B7960"],["青緑","あおみどり","#00A497"],["青竹色","あおたけいろ","#7EBEA5"],["白群","びゃくぐん","#83CCD2"],["天色","あまいろ","#2CA9E1"],["空色","そらいろ","#A0D8EF"],["水色","みずいろ","#BCE2E8"],["露草色","つゆくさいろ","#38A1DB"],["群青色","ぐんじょういろ","#4C6CB3"],["瑠璃色","るりいろ","#1E50A2"],["瑠璃紺","るりこん","#19448E"],["紺青","こんじょう","#192F60"],["薄群青","うすぐんじょう","#5383C3"],["紫","むらさき","#884898"],["桑の実色","くわのみいろ","#55295B"],["薔薇色","ばらいろ","#E9546B"],["柑子色","こうじいろ","#F6AD49"],["杏色","あんずいろ","#F7B977"],["薄橙","うすだいだい","#FCC7A2"],["檸檬色","れもんいろ","#FFF33F"],["小麦色","こむぎいろ","#E4B97A"],["薄萌葱","うすもえぎ","#BADCAD"],["青白橡","あおしろつるばみ","#9BA88D"],["麹塵","きくじん","#6E7955"],["薄花桜","うすはなざくら","#7A99CF"]],
+6:[["縹色","はなだいろ","#2792C3"],["錆浅葱","さびあさぎ","#5C9291"],["錆鼠","さびねず","#47585C"],["青鈍","あおにび","#6B7B6E"],["薄鈍","うすにび","#ADADAD"],["灰青","はいあお","#C0C6C9"],["月白","げっぱく","#EAF4FC"],["花色","はないろ","#2A4073"],["紺鼠","こんねず","#44617B"],["青","あお","#0095D9"],["納戸色","なんどいろ","#008899"],["鉄色","てついろ","#005243"],["千草色","ちぐさいろ","#92B5A9"],["薄青","うすあお","#93B69C"],["柳煤竹","やなぎすすたけ","#5B6356"],["海松色","みるいろ","#726D40"],["薄紫","うすむらさき","#C4A3BF"],["紫水晶","むらさきすいしょう","#DCD6D9"],["白藤色","しらふじいろ","#DBD0E6"],["白","しろ","#FFFFFF"],["葡萄色","えびいろ","#640125"],["青朽葉","あおくちば","#ADA250"],["翡翠色","ひすいいろ","#38B48B"],["藤納戸","ふじなんど","#706CAA"],["紺瑠璃","こんるり","#164A84"],["青碧","せいへき","#478384"],["御納戸茶","おなんどちゃ","#465D4C"],["錆青磁","さびせいじ","#A6C8B2"],["深緑","ふかみどり","#00552E"],["抹茶色","まっちゃいろ","#C5C56A"]],
+7:[["茄子紺","なすこん","#824880"],["向日葵色","ひまわりいろ","#FCC800"],["黄色","きいろ","#FFD400"],["紺碧","こんぺき","#007BBB"],["青藍","せいらん","#274A78"],["夏虫色","なつむしいろ","#CEE4AE"],["緋色","ひいろ","#D3381C"],["金赤","きんあか","#EA5506"],["橙色","だいだいいろ","#EE7800"],["蜜柑色","みかんいろ","#F08300"],["砂色","すないろ","#DCD3B2"],["象牙色","ぞうげいろ","#F8F4E6"],["白茶","しらちゃ","#DDBB99"],["亜麻色","あまいろ","#D6C6AF"],["薄墨色","うすずみいろ","#A3A3A2"],["鼠色","ねずみいろ","#949495"],["浅縹","あさはなだ","#84B9CB"],["紺藍","こんあい","#4A488E"],["白菫色","しろすみれいろ","#EAEDF7"],["白花色","しらはないろ","#E8ECEF"],["苺色","いちごいろ","#B5495B"],["濃藍","こいあい","#0F2350"],["褐色","かちいろ","#4D4398"],["御召御納戸","おめしおなんど","#4F726C"],["錆御納戸","さびおなんど","#53727D"],["舛花色","ますはないろ","#5B7E91"],["湊鼠","みなとねず","#80989B"],["錫色","すずいろ","#9EA1AF"],["鉄御納戸","てつおなんど","#455765"],["藍媚茶","あいこびちゃ","#56564B"],["銀朱","ぎんしゅ","#C85554"]],
+8:[["黄土色","おうどいろ","#C39143"],["琥珀色","こはくいろ","#BF783A"],["飴色","あめいろ","#DEB068"],["支子色","くちなしいろ","#FBCA4D"],["黄朽葉","きくちば","#D3A243"],["玉蜀黍色","とうもろこしいろ","#EEC362"],["卵色","たまごいろ","#FCD575"],["浅黄","うすき","#EDD3A1"],["鳥の子色","とりのこいろ","#FFF1CF"],["練色","ねりいろ","#EDE4CD"],["灰色","はいいろ","#7D7D7D"],["薄鼠","うすねず","#9790A4"],["花緑青","はなろくしょう","#00A381"],["緑青色","ろくしょういろ","#47885E"],["女郎花","おみなえし","#F2F2B0"],["菫色","すみれいろ","#7058A3"],["濃色","こきいろ","#634950"],["滅紫","けしむらさき","#594255"],["紫鼠","むらさきねず","#71686C"],["鳩羽鼠","はとばねず","#9E8B8E"],["鳩羽色","はとばいろ","#95859C"],["古代紫","こだいむらさき","#895B8A"],["深紫","ふかむらさき","#493759"],["煉瓦色","れんがいろ","#B55233"],["赤錆色","あかさびいろ","#8A3B00"],["弁柄色","べんがらいろ","#8F2E14"],["代赭","たいしゃ","#BB5535"],["黄丹","おうに","#EE7948"],["紅樺","べにかば","#BB5548"],["芥子色","からしいろ","#D0AF4C"],["山吹茶","やまぶきちゃ","#C89932"]],
+9:[["桔梗色","ききょういろ","#5654A2"],["茜色","あかねいろ","#B7282E"],["萩色","はぎいろ","#E29399"],["竜胆色","りんどういろ","#9079AD"],["栗色","くりいろ","#762F07"],["柿色","かきいろ","#ED6D3D"],["洗柿","あらいがき","#F2C9AC"],["照柿","てりがき","#EB6238"],["柿渋色","かきしぶいろ","#9F563A"],["利休茶","りきゅうちゃ","#A59564"],["利休色","りきゅういろ","#8F8667"],["路考茶","ろこうちゃ","#8C7042"],["媚茶","こびちゃ","#716246"],["千歳茶","せんさいちゃ","#494A41"],["朽葉色","くちばいろ","#917347"],["赤朽葉","あかくちば","#DB8449"],["枯草色","かれくさいろ","#E4DC8A"],["薄香","うすこう","#F0CFA0"],["香色","こういろ","#EFCD9A"],["丁子茶","ちょうじちゃ","#B4866B"],["桑染","くわぞめ","#B79B5B"],["伽羅色","きゃらいろ","#D8A373"],["灰汁色","あくいろ","#9E9478"],["海老茶","えびちゃ","#773C30"],["鳶色","とびいろ","#95483F"],["紅鳶","べにとび","#9A493F"],["黒鳶","くろとび","#432F2F"],["葡萄鼠","ぶどうねずみ","#705B67"],["藤煤竹","ふじすすたけ","#5A5359"],["小豆色","あずきいろ","#96514D"]],
+10:[["金茶","きんちゃ","#F39800"],["黄茶","きちゃ","#E17B34"],["栗梅","くりうめ","#852E19"],["茶色","ちゃいろ","#965042"],["焦茶","こげちゃ","#6F4B3E"],["煤竹色","すすたけいろ","#6F514C"],["黄櫨染","こうろぜん","#D66A35"],["赤香","あかこう","#F6B894"],["薄茶","うすちゃ","#A58F86"],["枯茶","かれちゃ","#8D6449"],["胡桃色","くるみいろ","#A86F4C"],["樺色","かばいろ","#CD5E3C"],["檜皮色","ひわだいろ","#965036"],["桑茶","くわちゃ","#C09A6B"],["柴染","ふしぞめ","#B28C6E"],["江戸茶","えどちゃ","#CD8C5C"],["芝翫茶","しかんちゃ","#AD7E4E"],["梅幸茶","ばいこうちゃ","#887F4E"],["璃寛茶","りかんちゃ","#6A5D21"],["黄海松茶","きみるちゃ","#918754"],["赤銅色","しゃくどういろ","#752100"],["臙脂","えんじ","#B94047"],["空五倍子色","うつぶしいろ","#9D896C"],["生壁色","なまかべいろ","#94846A"],["白橡","しろつるばみ","#CBB994"],["蒸栗色","むしくりいろ","#EBE1A9"],["木蘭色","もくらんじき","#C7B370"],["榛色","はしばみいろ","#BFA46F"],["砺茶","とのちゃ","#985F2A"],["雀茶","すずめちゃ","#AA4F37"],["赤白橡","あかしろつるばみ","#D7A98C"]],
+11:[["紅赤","べにあか","#D9333F"],["唐茶","からちゃ","#783C1D"],["黒茶","くろちゃ","#583822"],["栗皮茶","くりかわちゃ","#6D3C32"],["憲法色","けんぽういろ","#543F32"],["黒","くろ","#2B2B2B"],["呂色","ろいろ","#0C0C0C"],["漆黒","しっこく","#0D0015"],["鉄黒","てつぐろ","#281A14"],["檳榔子染","びんろうじぞめ","#433D3C"],["暗紅色","あんこうしょく","#74325C"],["中黄","ちゅうき","#FFEA00"],["山鳩色","やまばといろ","#767C6B"],["鶸茶","ひわちゃ","#8C8861"],["根岸色","ねぎしいろ","#938B4B"],["岩井茶","いわいちゃ","#6B6F59"],["茶鼠","ちゃねずみ","#A99E93"],["鉛丹色","えんたんいろ","#EC6D51"],["赤","あか","#E60033"],["枯色","かれいろ","#E0C99D"],["青褐","あおかち","#393E4F"],["銀煤竹","ぎんすすたけ","#856859"],["承和色","そがいろ","#FFDC00"],["灰茶","はいちゃ","#98623C"],["素色","そしょく","#EAE5E3"],["絹鼠","きぬねず","#DDDCD6"],["暁鼠","あかつきねず","#D3CFD9"],["桔梗鼠","ききょうねず","#95949A"],["利休白茶","りきゅうしらちゃ","#B3ADA0"],["丼鼠","どぶねずみ","#595455"]],
+12:[["枯野色","かれのいろ","#D3CBC6"],["留紺","とめこん","#1C305C"],["赤紫","あかむらさき","#EB6EA5"],["黒紅","くろべに","#302833"],["天鵞絨","びろうど","#2F5D50"],["革色","かわいろ","#475950"],["熨斗目花色","のしめはないろ","#426579"],["洗朱","あらいしゅ","#D0826C"],["空色鼠","そらいろねず","#BDCBD2"],["海松茶","みるちゃ","#5A544B"],["若紫","わかむらさき","#BC64A4"],["紅掛空色","べにかけそらいろ","#8491C3"],["紅掛花色","べにかけはないろ","#4D5AAF"],["蘇芳香","すおうこう","#A86965"],["紅檜皮","べにひはだ","#7B4741"],["土器色","かわらけいろ","#C37854"],["錆鉄御納戸","さびてつおなんど","#485859"],["樺茶","かばちゃ","#726250"],["甚三紅","じんざもみ","#EE827C"],["本紫","ほんむらさき","#65318E"],["青紫","あおむらさき","#674196"],["紅紫","べにむらさき","#B44C97"],["纁","そひ","#E0815E"],["遠州茶","えんしゅうちゃ","#CA8269"],["宗伝唐茶","そうでんからちゃ","#A16D5D"],["煤色","すすいろ","#887F7A"],["長春色","ちょうしゅんいろ","#C97586"],["乳白色","にゅうはくしょく","#F3F3F3"]]
+};
+const SEKKI=[["立春","りっしゅん"],["雨水","うすい"],["啓蟄","けいちつ"],["春分","しゅんぶん"],["清明","せいめい"],["穀雨","こくう"],["立夏","りっか"],["小満","しょうまん"],["芒種","ぼうしゅ"],["夏至","げし"],["小暑","しょうしょ"],["大暑","たいしょ"],["立秋","りっしゅう"],["処暑","しょしょ"],["白露","はくろ"],["秋分","しゅうぶん"],["寒露","かんろ"],["霜降","そうこう"],["立冬","りっとう"],["小雪","しょうせつ"],["大雪","たいせつ"],["冬至","とうじ"],["小寒","しょうかん"],["大寒","だいかん"]];
+const KO=[["東風解凍","はるかぜこおりをとく"],["黄鶯睍睆","うぐいすなく"],["魚上氷","うおこおりをいずる"],
+["土脉潤起","つちのしょううるおいおこる"],["霞始靆","かすみはじめてたなびく"],["草木萌動","そうもくめばえいずる"],
+["蟄虫啓戸","すごもりむしとをひらく"],["桃始笑","ももはじめてさく"],["菜虫化蝶","なむしちょうとなる"],
+["雀始巣","すずめはじめてすくう"],["桜始開","さくらはじめてひらく"],["雷乃発声","かみなりすなわちこえをはっす"],
+["玄鳥至","つばめきたる"],["鴻雁北","こうがんかえる"],["虹始見","にじはじめてあらわる"],
+["葭始生","あしはじめてしょうず"],["霜止出苗","しもやんでなえいずる"],["牡丹華","ぼたんはなさく"],
+["蛙始鳴","かわずはじめてなく"],["蚯蚓出","みみずいずる"],["竹笋生","たけのこしょうず"],
+["蚕起食桑","かいこおきてくわをはむ"],["紅花栄","べにばなさかう"],["麦秋至","むぎのときいたる"],
+["蟷螂生","かまきりしょうず"],["腐草為蛍","くされたるくさほたるとなる"],["梅子黄","うめのみきばむ"],
+["乃東枯","なつかれくさかるる"],["菖蒲華","あやめはなさく"],["半夏生","はんげしょうず"],
+["温風至","あつかぜいたる"],["蓮始開","はすはじめてひらく"],["鷹乃学習","たかすなわちわざをならう"],
+["桐始結花","きりはじめてはなをむすぶ"],["土潤溽暑","つちうるおうてむしあつし"],["大雨時行","たいうときどきふる"],
+["涼風至","すずかぜいたる"],["寒蝉鳴","ひぐらしなく"],["蒙霧升降","ふかききりまとう"],
+["綿柎開","わたのはなしべひらく"],["天地始粛","てんちはじめてさむし"],["禾乃登","こくものすなわちみのる"],
+["草露白","くさのつゆしろし"],["鶺鴒鳴","せきれいなく"],["玄鳥去","つばめさる"],
+["雷乃収声","かみなりすなわちこえをおさむ"],["蟄虫坏戸","むしかくれてとをふさぐ"],["水始涸","みずはじめてかるる"],
+["鴻雁来","こうがんきたる"],["菊花開","きくのはなひらく"],["蟋蟀在戸","きりぎりすとにあり"],
+["霜始降","しもはじめてふる"],["霎時施","こさめときどきふる"],["楓蔦黄","もみじつたきばむ"],
+["山茶始開","つばきはじめてひらく"],["地始凍","ちはじめてこおる"],["金盞香","きんせんかさく"],
+["虹蔵不見","にじかくれてみえず"],["朔風払葉","きたかぜこのはをはらう"],["橘始黄","たちばなはじめてきばむ"],
+["閉塞成冬","そらさむくふゆとなる"],["熊蟄穴","くまあなにこもる"],["鱖魚群","さけのうおむらがる"],
+["乃東生","なつかれくさしょうず"],["麋角解","さわしかのつのおつる"],["雪下出麦","ゆきわたりてむぎのびる"],
+["芹乃栄","せりすなわちさかう"],["水泉動","しみずあたたかをふくむ"],["雉始雊","きじはじめてなく"],
+["款冬華","ふきのはなさく"],["水沢腹堅","さわみずこおりつめる"],["鶏始乳","にわとりはじめてとやにつく"]];
+const MOON_NAMES={0:"新月",1:"繊月",2:"二日月",3:"三日月",7:"上弦の月",10:"十日夜",13:"十三夜",14:"小望月",15:"満月",16:"十六夜",17:"立待月",18:"居待月",19:"寝待月",20:"更待月",23:"下弦の月",26:"有明月",29:"晦"};
+const WD=["日","月","火","水","木","金","土"];
+
+// ---- 天文計算（簡易・誤差数時間以内） ----
+function jd(d){return d.getTime()/86400000+2440587.5}
+function sunLon(d){ // 太陽の視黄経（度）Meeus 簡易式
+  const T=(jd(d)-2451545)/36525;
+  const L0=280.46646+36000.76983*T+0.0003032*T*T;
+  const M=(357.52911+35999.05029*T-0.0001537*T*T)*Math.PI/180;
+  const C=(1.914602-0.004817*T)*Math.sin(M)+(0.019993-0.000101*T)*Math.sin(2*M)+0.000289*Math.sin(3*M);
+  const om=(125.04-1934.136*T)*Math.PI/180;
+  let l=L0+C-0.00569-0.00478*Math.sin(om);
+  return ((l%360)+360)%360;
+}
+function moonAge(d){ // 2000-01-06 18:14 UTC の朔を基準
+  const syn=29.530588853;
+  let a=(jd(d)-2451550.26)%syn; if(a<0)a+=syn; return a;
+}
+// JST の「その日の正午」で暦を評価
+function noonJST(d){return new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(),3,0,0))}
+
+function moonPath(age){
+  const f=age/29.530588853, r=46, rx=Math.abs(Math.cos(2*Math.PI*f))*r;
+  let p;
+  if(f<0.5){ // 上弦側：右が明るい
+    p=`M0,-${r} A${r},${r} 0 0 1 0,${r} A${rx},${r} 0 0 ${f<0.25?0:1} 0,-${r}Z`;
+  }else{
+    p=`M0,-${r} A${r},${r} 0 0 0 0,${r} A${rx},${r} 0 0 ${f<0.75?0:1} 0,-${r}Z`;
+  }
+  return `<circle r="${r}" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.2"/><path d="${p}" fill="currentColor"/>`;
+}
+
+function lum(hex){const n=parseInt(hex.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255;
+  const f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)};
+  return .2126*f(r)+.7152*f(g)+.0722*f(b)}
+
+let offset=0; // 日付オフセット（リモコン左右でプレビュー）
+function targetDate(){const d=new Date();d.setDate(d.getDate()+offset);return d}
+
+// じわっと消えて、じわっと現れる
+let fading=null;
+function render(){
+  const stage=document.getElementById('stage');
+  if(fading){clearTimeout(fading)}
+  stage.classList.add('out');
+  fading=setTimeout(()=>{draw();requestAnimationFrame(()=>requestAnimationFrame(()=>stage.classList.remove('out')));fading=null},1500);
+}
+function draw(){
+  const d=targetDate(), n=noonJST(d);
+  const list=COLORS[d.getMonth()+1], c=list[(d.getDate()-1)%list.length];
+  document.documentElement.style.setProperty('--bg',c[2]);
+  document.body.classList.toggle('dark',lum(c[2])<0.36);
+  const vert=t=>[...t].map((ch,i)=>`<span style="--i:${i}"${/[ー〜]/.test(ch)?' class="r"':''}>${ch}</span>`).join('');
+  const nameEl=document.getElementById('name');
+  nameEl.innerHTML=vert(c[0]); nameEl.style.setProperty('--n',[...c[0]].length);
+  document.getElementById('yomi').innerHTML=vert(c[1]);
+  document.getElementById('hex').textContent=c[2];
+  document.getElementById('date').textContent=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${WD[d.getDay()]}）`;
+  const lon=sunLon(n), x=((lon-315)+360)%360;
+  const s=SEKKI[Math.floor(x/15)], k=KO[Math.floor(x/5)];
+  document.querySelector('#sekki .s').innerHTML=`${s[0]}<small>${s[1]}</small>`;
+  document.querySelector('#sekki .k').innerHTML=`${k[0]}<small>${k[1]}</small>`;
+  const age=moonAge(n), ai=Math.round(age)%30;
+  document.querySelector('#moon svg').innerHTML=moonPath(age);
+  document.querySelector('#moon .mn').textContent=MOON_NAMES[ai]||`${ai}日月`;
+  document.querySelector('#moon .ma').textContent=`月齢 ${age.toFixed(1)}`;
+  document.getElementById('hint').textContent=offset?`${offset>0?'+':''}${offset}日　（決定／戻るで今日に戻る）`:'';
+  document.getElementById('hint').classList.toggle('on',offset!==0);
+}
+// 時計は分が変わるたびにブロックごと溶け変わる（秒は表示しない）
+let shownMin=null;
+function tick(){
+  const now=new Date();
+  const key=now.getHours()*60+now.getMinutes();
+  if(key===shownMin)return;
+  const el=document.getElementById('clock');
+  const text=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  if(shownMin===null){el.textContent=text}
+  else{el.classList.add('swap');setTimeout(()=>{el.textContent=text;el.classList.remove('swap')},900)}
+  shownMin=key;
+  if(key===0)render();
+}
+// 焼き付き対策：数分ごとに全体をわずかにずらす
+function drift(){const x=(Math.random()*2-1)*1.2,y=(Math.random()*2-1)*1.2;
+  const r=document.documentElement.style;r.setProperty('--dx',x+'vmin');r.setProperty('--dy',y+'vmin')}
+
+// ---- 向きの判定 ----
+// ?rot=90 / ?rot=270 : Fire TV のように横出力しかできない機器を、物理的に縦置きしたモニターへ映すとき
+const ROT=parseInt(new URLSearchParams(location.search).get('rot'))||0;
+function applyOrientation(){
+  const b=document.body, r=document.documentElement.style;
+  if(ROT===90||ROT===270){
+    b.classList.add('rot');
+    r.setProperty('--vw','1vh'); r.setProperty('--vh','1vw');
+    r.setProperty('--rot', ROT===90?'rotate(90deg) translateY(-100%)':'rotate(-90deg) translateX(-100%)');
+    b.classList.add('port'); b.classList.remove('land');
+  }else{
+    const portrait=matchMedia('(max-aspect-ratio: 1/1)').matches;
+    b.classList.toggle('port',portrait); b.classList.toggle('land',!portrait);
+  }
+}
+addEventListener('resize',applyOrientation);
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'){offset++;render()}
+  else if(e.key==='ArrowLeft'){offset--;render()}
+  else if(e.key==='Enter'||e.key==='Escape'||e.key==='Backspace'||e.key==='GoBack'){offset=0;render()}
+  else if(e.key==='f'||e.key==='F'){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}
+});
+applyOrientation();
+document.getElementById('stage').classList.add('out');draw();
+requestAnimationFrame(()=>requestAnimationFrame(()=>document.getElementById('stage').classList.remove('out')));
+setTimeout(tick,1600);setInterval(tick,1000);setInterval(drift,180000);
+</script>
+</body>
+</html>
