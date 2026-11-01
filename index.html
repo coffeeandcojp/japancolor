@@ -2,7 +2,12 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<!-- iPad: 「ホーム画面に追加」で Safari の UI なしに全画面表示する -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="いろ">
 <title>にっぽんのいろ 日めくり</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;700&display=swap" rel="stylesheet">
@@ -252,6 +257,13 @@ function applyOrientation(){
   }
 }
 addEventListener('resize',applyOrientation);
+let touchT=0;
+document.addEventListener('touchstart',e=>{touchT=Date.now()},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(Date.now()-touchT>600){offset=0;render();return}
+  const x=e.changedTouches[0].clientX, w=innerWidth;
+  if(x>w*0.66){offset++;render()} else if(x<w*0.34){offset--;render()}
+},{passive:true});
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight'){offset++;render()}
   else if(e.key==='ArrowLeft'){offset--;render()}
