@@ -21,7 +21,7 @@
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%;background:var(--bg)}
-body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+body{margin:0;height:100%;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:var(--bg);color:var(--ink);
   font-family:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
   transition:background-color 2.4s ease,color 2.4s ease;cursor:none;
   -webkit-font-smoothing:antialiased;font-feature-settings:"palt"}
@@ -221,7 +221,7 @@ function draw(){
   document.querySelector('#moon svg').innerHTML=moonPath(age);
   document.querySelector('#moon .mn').textContent=MOON_NAMES[ai]||`${ai}日月`;
   document.querySelector('#moon .ma').textContent=`月齢 ${age.toFixed(1)}`;
-  document.getElementById('hint').textContent=offset?`${offset>0?'+':''}${offset}日　（決定／戻るで今日に戻る）`:'';
+  document.getElementById('hint').textContent=offset?`${offset>0?'+':''}${offset}日　（長押し／決定で今日に戻る）`:'';
   document.getElementById('hint').classList.toggle('on',offset!==0);
 }
 // 時計は分が変わるたびにブロックごと溶け変わる（秒は表示しない）
@@ -257,12 +257,17 @@ function applyOrientation(){
   }
 }
 addEventListener('resize',applyOrientation);
-let touchT=0;
-document.addEventListener('touchstart',e=>{touchT=Date.now()},{passive:true});
+// タッチ操作：左スワイプで翌日、右スワイプで前日、長押しで今日に戻る（単純なタップでは変わらない）
+let tx=0,ty=0,tt=0,tmoved=false;
+document.addEventListener('touchstart',e=>{const t=e.touches[0];tx=t.clientX;ty=t.clientY;tt=Date.now();tmoved=false},{passive:true});
+document.addEventListener('touchmove',e=>{const t=e.touches[0];if(Math.hypot(t.clientX-tx,t.clientY-ty)>12)tmoved=true},{passive:true});
 document.addEventListener('touchend',e=>{
-  if(Date.now()-touchT>600){offset=0;render();return}
-  const x=e.changedTouches[0].clientX, w=innerWidth;
-  if(x>w*0.66){offset++;render()} else if(x<w*0.34){offset--;render()}
+  const t=e.changedTouches[0], dx=t.clientX-tx, dy=t.clientY-ty, dt=Date.now()-tt;
+  if(!tmoved && dt>600){offset=0;render();return}           // 長押し → 今日
+  if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5){      // 横スワイプ
+    if(dx<0){offset++} else {offset--}
+    render();
+  }
 },{passive:true});
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight'){offset++;render()}
