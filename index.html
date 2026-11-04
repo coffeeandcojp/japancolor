@@ -119,6 +119,11 @@ body.port #haiku .ku p:nth-child(3){margin-top:calc(10*var(--vh))}
 body.port #haiku .src{font-size:clamp(11px,calc(2.2*var(--vw)),22px);margin-top:calc(1.6*var(--vh))}
 body.port #hint{top:calc(2.4*var(--vh));font-size:clamp(11px,calc(2.4*var(--vw)),20px)}
 
+/* 手で日送りしたときは速く */
+body.fast{transition-duration:.8s}
+body.fast .t,body.fast #name span,body.fast #yomi span,body.fast #haiku .ku p span{transition-duration:.55s;transition-delay:calc(var(--i,0)*35ms)}
+/* 毎分の小さな仕掛け：時計と一緒に、どれか一つのブロックが墨を入れ直すように溶け変わる */
+#stage .t.re,#stage .re .t,#stage .re #name span,#stage .re #yomi span,#stage .re .ku p span{opacity:0;filter:blur(10px)}
 @media (prefers-reduced-motion:reduce){body,#stage,.t,#name span,#yomi span,#clock{transition:none}}
 </style>
 </head>
@@ -275,11 +280,12 @@ function targetDate(){const d=new Date();d.setDate(d.getDate()+offset);return d}
 
 // じわっと消えて、じわっと現れる
 let fading=null;
-function render(){
+function render(fast){
   const stage=document.getElementById('stage');
   if(fading){clearTimeout(fading)}
+  document.body.classList.toggle('fast',!!fast);
   stage.classList.add('out');
-  fading=setTimeout(()=>{draw();requestAnimationFrame(()=>requestAnimationFrame(()=>stage.classList.remove('out')));fading=null},1500);
+  fading=setTimeout(()=>{draw();requestAnimationFrame(()=>requestAnimationFrame(()=>stage.classList.remove('out')));fading=null},fast?520:1500);
 }
 function draw(){
   const d=targetDate(), n=noonJST(d);
@@ -315,9 +321,19 @@ function tick(){
   const el=document.getElementById('clock');
   const text=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   if(shownMin===null){el.textContent=text}
-  else{el.classList.add('swap');setTimeout(()=>{el.textContent=text;el.classList.remove('swap')},1500)}
+  else if(key===0){render()}                                  // 日付が変わる：全体が溶け変わる
+  else if(now.getMinutes()===0){                              // 正時：画面全体を入れ直す
+    el.classList.add('swap');setTimeout(()=>{el.textContent=text;el.classList.remove('swap')},1500);
+    render();
+  }else{                                                      // 毎分：時計＋どれか一つのブロック
+    el.classList.add('swap');
+    const order=['#haiku','#title','#sekki','#moon','#date'];
+    const target=document.querySelector(order[(key)%order.length]);
+    const spans=target.querySelectorAll('span');
+    target.classList.add('re');
+    setTimeout(()=>{el.textContent=text;el.classList.remove('swap');target.classList.remove('re')},1500);
+  }
   shownMin=key;
-  if(key===0)render();
 }
 // 焼き付き対策：数分ごとに全体をわずかにずらす
 function drift(){const x=(Math.random()*2-1)*1.2,y=(Math.random()*2-1)*1.2;
@@ -345,16 +361,16 @@ document.addEventListener('touchstart',e=>{const t=e.touches[0];tx=t.clientX;ty=
 document.addEventListener('touchmove',e=>{const t=e.touches[0];if(Math.hypot(t.clientX-tx,t.clientY-ty)>12)tmoved=true},{passive:true});
 document.addEventListener('touchend',e=>{
   const t=e.changedTouches[0], dx=t.clientX-tx, dy=t.clientY-ty, dt=Date.now()-tt;
-  if(!tmoved && dt>600){offset=0;render();return}           // 長押し → 今日
+  if(!tmoved && dt>600){offset=0;render(true);return}        // 長押し → 今日
   if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5){      // 横スワイプ
     if(dx<0){offset++} else {offset--}
-    render();
+    render(true);
   }
 },{passive:true});
 document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowRight'){offset++;render()}
-  else if(e.key==='ArrowLeft'){offset--;render()}
-  else if(e.key==='Enter'||e.key==='Escape'||e.key==='Backspace'||e.key==='GoBack'){offset=0;render()}
+  if(e.key==='ArrowRight'){offset++;render(true)}
+  else if(e.key==='ArrowLeft'){offset--;render(true)}
+  else if(e.key==='Enter'||e.key==='Escape'||e.key==='Backspace'||e.key==='GoBack'){offset=0;render(true)}
   else if(e.key==='f'||e.key==='F'){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}
 });
 applyOrientation();
