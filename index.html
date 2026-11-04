@@ -48,8 +48,19 @@ body.rot #stage{width:100vh;height:100vw;transition:none}
 #stage.out #yomi span.r{transform:rotate(90deg) translateX(.12em)}
 #koyomi{position:absolute;margin:0}
 #date{letter-spacing:.06em;line-height:1.3}
-#clock{font-weight:400;letter-spacing:.04em;line-height:1.05;font-variant-numeric:tabular-nums}
-#clock.swap{opacity:0;filter:blur(10px)}
+/* 刻（不定時法） */
+#koku{display:flex;align-items:baseline;flex-wrap:wrap;line-height:1.1;margin-top:.1em}
+#koku .kn{font-weight:500;letter-spacing:.08em}
+#koku .kr{color:var(--ink-soft);letter-spacing:.2em;margin-left:.8em;font-size:.3em}
+#koku .kz{color:var(--ink-soft);letter-spacing:.2em;margin-left:1em;font-size:.3em}
+/* 香時計：線香は刻の残りに応じて短くなり、火種が一秒ごとに息をする */
+#koh{position:absolute;margin:0}
+#koh svg{display:block;overflow:visible;height:auto}
+#stick{fill:var(--ink);opacity:.55}
+#ember{fill:#F2A65A;filter:drop-shadow(0 0 3px rgba(255,140,60,.9));animation:ember 1s ease-in-out infinite}
+@keyframes ember{0%,100%{opacity:.55;r:2.2}45%{opacity:1;r:3}}
+.sm{fill:none;stroke:var(--ink);stroke-width:1.2;stroke-linecap:round;opacity:.28;stroke-dasharray:90;animation:smoke 6s linear infinite}
+@keyframes smoke{0%{stroke-dashoffset:90;opacity:0;transform:translateY(0)}20%{opacity:.3}100%{stroke-dashoffset:-90;opacity:0;transform:translateY(-14px)}}
 #sekki{position:absolute;margin:0;border-left:1px solid var(--line)}
 #sekki .s{letter-spacing:.14em;line-height:1.35}
 #sekki .s small{font-size:.5em;letter-spacing:.1em;color:var(--ink-soft);margin-left:.6em}
@@ -74,12 +85,14 @@ body.rot #stage{width:100vh;height:100vw;transition:none}
 #haiku .src{color:var(--ink-soft);letter-spacing:.18em;white-space:nowrap}
 
 /* ---------- 横画面 ---------- */
-body.land #title{right:calc(8*var(--vw));top:50%;transform:translateY(-50%);gap:calc(2.6*var(--vmin))}
+body.land #title{right:calc(8*var(--vw));top:48%;transform:translateY(-50%);gap:calc(2.6*var(--vmin))}
 body.land #name{font-size:clamp(64px,calc(17*var(--vmin)),260px);letter-spacing:.14em}
 body.land #yomi{font-size:clamp(16px,calc(3.2*var(--vmin)),40px)}
 body.land #koyomi{left:calc(6*var(--vw));top:calc(6*var(--vmin))}
 body.land #date{font-size:clamp(20px,calc(4*var(--vmin)),54px)}
-body.land #clock{font-size:clamp(48px,calc(10*var(--vmin)),150px)}
+body.land #koku{font-size:clamp(40px,calc(8.4*var(--vmin)),128px)}
+body.land #koh{left:calc(6.6*var(--vw));top:calc(30*var(--vmin))}
+body.land #koh svg{width:clamp(18px,calc(4.2*var(--vmin)),52px)}
 body.land #sekki{left:calc(6*var(--vw));bottom:calc(5*var(--vmin));padding-left:calc(1.6*var(--vmin))}
 body.land #sekki .s{font-size:clamp(18px,calc(3.4*var(--vmin)),46px)}
 body.land #sekki .k{font-size:clamp(22px,calc(4.2*var(--vmin)),58px)}
@@ -104,7 +117,11 @@ body.port #name span{line-height:1.1}
 body.port #yomi{font-size:clamp(16px,calc(4.4*var(--vw)),48px)}
 body.port #koyomi{left:calc(8*var(--vw));top:calc(6*var(--vh))}
 body.port #date{font-size:clamp(18px,calc(4.4*var(--vw)),48px)}
-body.port #clock{font-size:clamp(56px,calc(17*var(--vw)),190px)}
+body.port #koku{font-size:clamp(44px,calc(11*var(--vw)),130px)}
+body.port #koku .kr{margin-left:.15em;flex-basis:100%;margin-top:.25em}
+body.port #koku .kz{margin-left:0;flex-basis:100%;margin-top:.1em}
+body.port #koh{right:calc(9*var(--vw));top:calc(4.5*var(--vh))}
+body.port #koh svg{width:clamp(18px,calc(4.6*var(--vw)),52px)}
 body.port #sekki{left:calc(8*var(--vw));bottom:calc(6*var(--vh));padding-left:calc(3*var(--vw))}
 body.port #sekki .s{font-size:clamp(18px,calc(5*var(--vw)),54px)}
 body.port #sekki .k{font-size:clamp(22px,calc(6.4*var(--vw)),72px)}
@@ -115,8 +132,8 @@ body.port #moon .ma{font-size:clamp(11px,calc(2.4*var(--vw)),26px)}
 body.port #haiku{left:calc(7*var(--vw));top:50%;transform:translateY(-50%)}
 body.port #haiku .ku{gap:calc(1.6*var(--vw))}
 body.port #haiku .ku p{font-size:clamp(15px,calc(3.6*var(--vw)),40px)}
-body.port #haiku .ku p:nth-child(2){margin-top:calc(5*var(--vh))}
-body.port #haiku .ku p:nth-child(3){margin-top:calc(10*var(--vh))}
+body.port #haiku .ku p:nth-child(2){margin-top:calc(4*var(--vh))}
+body.port #haiku .ku p:nth-child(3){margin-top:calc(8*var(--vh))}
 body.port #haiku .src{font-size:clamp(11px,calc(2.2*var(--vw)),22px);margin-top:calc(1.6*var(--vh))}
 body.port #hint{top:calc(2.4*var(--vh));font-size:clamp(11px,calc(2.4*var(--vw)),20px)}
 
@@ -125,6 +142,7 @@ body.fast{transition-duration:.8s}
 body.fast .t,body.fast #name span,body.fast #yomi span,body.fast #haiku .ku p span{transition-duration:.55s;transition-delay:calc(var(--i,0)*35ms)}
 /* 毎分の小さな仕掛け：時計と一緒に、どれか一つのブロックが墨を入れ直すように溶け変わる */
 #stage .t.re,#stage .re .t,#stage .re #name span,#stage .re #yomi span,#stage .re .ku p span{opacity:0;filter:blur(10px)}
+#stage.out #koh{opacity:0;filter:blur(10px)}
 /* ---------- 色見本帳（月の一覧パネル）---------- */
 #panel{position:absolute;top:0;left:0;width:100%;height:100%;box-sizing:border-box;
   background:#ECE8E1;color:#2A2724;transform:translateY(-100%);transition:transform .7s cubic-bezier(.2,.8,.2,1);
@@ -146,13 +164,14 @@ body.port #panel .grid{grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr}
 #panel .tile.today .d::after{content:"・今日";letter-spacing:.1em}
 #panel .tile.dk{color:#F4F1EA}
 #panel .tile.lt{color:#2A2724}
-@media (prefers-reduced-motion:reduce){body,#stage,.t,#name span,#yomi span,#clock{transition:none}}
+@media (prefers-reduced-motion:reduce){body,#stage,.t,#name span,#yomi span{transition:none}}
 </style>
 </head>
 <body>
 <div id="stage">
   <div id="hint"></div>
-  <div id="koyomi"><div id="date" class="t"></div><div id="clock" class="t"></div></div>
+  <div id="koyomi"><div id="date" class="t"></div><div id="koku" class="t"><span class="kn"></span><span class="kr"></span><span class="kz"></span></div></div>
+  <div id="koh" class="t"><svg viewBox="0 0 40 220"><defs><filter id="blur"><feGaussianBlur stdDeviation="1.6"/></filter></defs><g id="smoke" filter="url(#blur)"><path class="sm" d="M20,0 c-4,-14 6,-22 2,-36 c-4,-12 4,-20 1,-32"/></g><rect id="stick" x="18.5" y="0" width="3" height="120" rx="1.5"/><circle id="ember" cx="20" cy="0" r="2.6"/></svg></div>
   <div id="title"><p id="yomi"></p><h1 id="name"></h1></div>
   <div id="haiku"><div class="ku"></div><div class="src t"></div></div>
   <div id="sekki" class="t"><div class="s"></div><div class="k"></div></div>
@@ -280,6 +299,62 @@ function moonAge(d){ // 2000-01-06 18:14 UTC の朔を基準
   const syn=29.530588853;
   let a=(jd(d)-2451550.26)%syn; if(a<0)a+=syn; return a;
 }
+// ---- 不定時法（北の山荘：芦ノ湖高原の緯度経度）----
+const LAT=35.20, LON=139.02;
+function solarParams(d){ // 赤緯（度）と均時差（分）
+  const T=(jd(d)-2451545)/36525;
+  const L0=((280.46646+36000.76983*T)%360+360)%360;
+  const M=(357.52911+35999.05029*T)*Math.PI/180;
+  const e=0.016708634-0.000042037*T;
+  const C=(1.914602-0.004817*T)*Math.sin(M)+0.019993*Math.sin(2*M)+0.000289*Math.sin(3*M);
+  const lam=(L0+C)*Math.PI/180;
+  const eps=(23.439291-0.0130042*T)*Math.PI/180;
+  const dec=Math.asin(Math.sin(eps)*Math.sin(lam));
+  const y=Math.tan(eps/2)**2, L0r=L0*Math.PI/180;
+  const E=y*Math.sin(2*L0r)-2*e*Math.sin(M)+4*e*y*Math.sin(M)*Math.cos(2*L0r)-0.5*y*y*Math.sin(4*L0r)-1.25*e*e*Math.sin(2*M);
+  return {dec, eot:E*180/Math.PI*4};
+}
+// その日の 明け六つ／暮れ六つ（太陽高度 -7.36°：日の出前・日の入り後およそ36分）
+function sixes(y,m,dd){
+  const noonUTC=new Date(Date.UTC(y,m,dd,3,0,0));
+  const {dec,eot}=solarParams(noonUTC);
+  const phi=LAT*Math.PI/180, h0=-7.36*Math.PI/180;
+  let cosH=(Math.sin(h0)-Math.sin(phi)*Math.sin(dec))/(Math.cos(phi)*Math.cos(dec));
+  cosH=Math.max(-1,Math.min(1,cosH));
+  const H=Math.acos(cosH)*180/Math.PI;            // 時角（度）
+  const noonMin=720-4*LON-eot;                    // 太陽南中のUTC（分）
+  const base=Date.UTC(y,m,dd,0,0,0);
+  return {ake:new Date(base+(noonMin-4*H)*60000), kure:new Date(base+(noonMin+4*H)*60000)};
+}
+const KOKU_DAY=[["明け六つ","あけむつ","卯"],["朝五つ","あさいつつ","辰"],["朝四つ","あさよつ","巳"],["昼九つ","ひるここのつ","午"],["昼八つ","ひるやつ","未"],["夕七つ","ゆうななつ","申"]];
+const KOKU_NIGHT=[["暮れ六つ","くれむつ","酉"],["宵五つ","よいいつつ","戌"],["夜四つ","よるよつ","亥"],["夜九つ","よるここのつ","子"],["夜八つ","よるやつ","丑"],["暁七つ","あかつきななつ","寅"]];
+function kokuNow(now){
+  const y=now.getFullYear(),m=now.getMonth(),dd=now.getDate();
+  const t=sixes(y,m,dd);
+  let start,end,list;
+  if(now>=t.ake&&now<t.kure){start=t.ake;end=t.kure;list=KOKU_DAY}
+  else if(now>=t.kure){const n=sixes(y,m,dd+1);start=t.kure;end=n.ake;list=KOKU_NIGHT}
+  else{const pv=sixes(y,m,dd-1);start=pv.kure;end=t.ake;list=KOKU_NIGHT}
+  const span=(end-start)/6, i=Math.min(5,Math.floor((now-start)/span));
+  const ks=new Date(start.getTime()+i*span), ke=new Date(ks.getTime()+span);
+  return {name:list[i], start:ks, end:ke, frac:(now-ks)/span};
+}
+let shownKoku=null;
+function drawKoku(){
+  const k=kokuNow(new Date());
+  document.querySelector('#koku .kn').textContent=k.name[0];
+  document.querySelector('#koku .kr').textContent=k.name[1];
+  document.querySelector('#koku .kz').textContent=k.name[2]+'の刻';
+  shownKoku=k.name[0];
+}
+function drawKoh(){ // 線香の残り長さ
+  const k=kokuNow(new Date());
+  const full=200, len=Math.max(6,full*(1-k.frac)), top=220-len;
+  const st=document.getElementById('stick'); st.setAttribute('y',top); st.setAttribute('height',len);
+  document.getElementById('ember').setAttribute('cy',top);
+  document.getElementById('smoke').setAttribute('transform',`translate(0,${top-4})`);
+}
+
 // JST の「その日の正午」で暦を評価
 function noonJST(d){return new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(),3,0,0))}
 
@@ -324,6 +399,7 @@ function draw(){
   document.querySelector('#haiku .ku').innerHTML=parts.map(ph=>'<p>'+[...ph].map(ch=>`<span style="--i:${gi++}"${/[ー〜]/.test(ch)?' class="r"':''}>${ch}</span>`).join('')+'</p>').join('');
   document.querySelector('#haiku .src').textContent='芭蕉　'+hk[2];
   document.getElementById('date').textContent=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${WD[d.getDay()]}）`;
+  drawKoku(); drawKoh();
   const lon=sunLon(n), x=((lon-315)+360)%360;
   const s=SEKKI[Math.floor(x/15)], k=KO[Math.floor(x/5)];
   document.querySelector('#sekki .s').innerHTML=`${s[0]}<small>${s[1]}</small>`;
@@ -335,28 +411,22 @@ function draw(){
   document.getElementById('hint').textContent=offset?`${offset>0?'+':''}${offset}日　（長押し／決定で今日に戻る　下スワイプで色見本帳）`:'';
   document.getElementById('hint').classList.toggle('on',offset!==0);
 }
-// 時計は分が変わるたびにブロックごと溶け変わる（秒は表示しない）
+// 毎秒：線香を少し短く。毎分：どれか一つのブロックが墨を入れ直す。刻が変わる・正時・日付が変わる：溶け変わり
 let shownMin=null;
 function tick(){
   const now=new Date();
+  drawKoh();
   const key=now.getHours()*60+now.getMinutes();
   if(key===shownMin)return;
-  const el=document.getElementById('clock');
-  const text=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  if(shownMin===null){el.textContent=text}
-  else if(key===0){render()}                                  // 日付が変わる：全体が溶け変わる
-  else if(now.getMinutes()===0){                              // 正時：画面全体を入れ直す
-    el.classList.add('swap');setTimeout(()=>{el.textContent=text;el.classList.remove('swap')},1500);
-    render();
-  }else{                                                      // 毎分：時計＋どれか一つのブロック
-    el.classList.add('swap');
-    const order=['#haiku','#title','#sekki','#moon','#date'];
-    const target=document.querySelector(order[(key)%order.length]);
-    const spans=target.querySelectorAll('span');
-    target.classList.add('re');
-    setTimeout(()=>{el.textContent=text;el.classList.remove('swap');target.classList.remove('re')},1500);
-  }
+  if(shownMin===null){shownMin=key;return}
   shownMin=key;
+  if(key===0){render();return}                                 // 日付が変わる
+  const k=kokuNow(now);
+  if(k.name[0]!==shownKoku||now.getMinutes()===0){render();return} // 刻が変わる／正時
+  const order=['#haiku','#title','#sekki','#moon','#date','#koku'];
+  const target=document.querySelector(order[key%order.length]);
+  target.classList.add('re');
+  setTimeout(()=>target.classList.remove('re'),1500);
 }
 // ---- 色見本帳パネル ----
 const WAFUU=['睦月','如月','弥生','卯月','皐月','水無月','文月','葉月','長月','神無月','霜月','師走'];
