@@ -47,10 +47,8 @@ body.rot #stage{width:100vh;height:100vw;transition:none}
 #stage.out #yomi span.r{transform:rotate(90deg) translateX(.12em)}
 #koyomi{position:absolute;margin:0}
 #date{letter-spacing:.06em;line-height:1.3}
-#clock{font-weight:400;letter-spacing:.04em;line-height:1.05;font-variant-numeric:tabular-nums;
-  transition:opacity .9s ease,filter .9s ease}
-#clock.swap{opacity:0;filter:blur(6px)}
-#hex{position:absolute;letter-spacing:.18em;color:var(--ink-soft)}
+#clock{font-weight:400;letter-spacing:.04em;line-height:1.05;font-variant-numeric:tabular-nums}
+#clock.swap{opacity:0;filter:blur(10px)}
 #sekki{position:absolute;margin:0;border-left:1px solid var(--line)}
 #sekki .s{letter-spacing:.14em;line-height:1.35}
 #sekki .s small{font-size:.5em;letter-spacing:.1em;color:var(--ink-soft);margin-left:.6em}
@@ -64,6 +62,16 @@ body.rot #stage{width:100vh;height:100vw;transition:none}
   opacity:0;transition:opacity .6s;white-space:nowrap}
 #hint.on{opacity:1}
 
+/* 俳句：短冊風に三句を段違いの縦書き */
+#haiku{position:absolute;display:flex;flex-direction:column;align-items:flex-start}
+#haiku .ku{display:flex;flex-direction:row-reverse;align-items:flex-start}
+#haiku .ku p{margin:0;display:flex;flex-direction:column;align-items:center;letter-spacing:.12em}
+#haiku .ku p span{display:block;line-height:1.38;transition:opacity 1.8s ease,filter 1.8s ease;
+  transition-delay:calc(var(--i,0)*45ms)}
+#haiku .ku p span.r{transform:rotate(90deg)}
+#stage.out #haiku .ku p span{opacity:0;filter:blur(10px)}
+#haiku .src{color:var(--ink-soft);letter-spacing:.18em;white-space:nowrap}
+
 /* ---------- 横画面 ---------- */
 body.land #title{right:calc(8*var(--vw));top:50%;transform:translateY(-50%);gap:calc(2.6*var(--vmin))}
 body.land #name{font-size:clamp(64px,calc(17*var(--vmin)),260px);letter-spacing:.14em}
@@ -71,7 +79,6 @@ body.land #yomi{font-size:clamp(16px,calc(3.2*var(--vmin)),40px)}
 body.land #koyomi{left:calc(6*var(--vw));top:calc(6*var(--vmin))}
 body.land #date{font-size:clamp(20px,calc(4*var(--vmin)),54px)}
 body.land #clock{font-size:clamp(48px,calc(10*var(--vmin)),150px)}
-body.land #hex{right:calc(8*var(--vw));bottom:calc(5*var(--vmin));font-size:clamp(12px,calc(1.8*var(--vmin)),22px)}
 body.land #sekki{left:calc(6*var(--vw));bottom:calc(5*var(--vmin));padding-left:calc(1.6*var(--vmin))}
 body.land #sekki .s{font-size:clamp(18px,calc(3.4*var(--vmin)),46px)}
 body.land #sekki .k{font-size:clamp(22px,calc(4.2*var(--vmin)),58px)}
@@ -79,20 +86,24 @@ body.land #moon{left:50%;bottom:calc(5*var(--vmin));transform:translateX(-50%);t
 body.land #moon svg{width:clamp(56px,calc(11*var(--vmin)),150px);margin:0 auto calc(.8*var(--vmin))}
 body.land #moon .mn{font-size:clamp(14px,calc(2.6*var(--vmin)),34px)}
 body.land #moon .ma{font-size:clamp(11px,calc(1.7*var(--vmin)),22px)}
+body.land #haiku{left:calc(44*var(--vw));top:47%;transform:translate(-50%,-50%)}
+body.land #haiku .ku{gap:calc(1.4*var(--vmin))}
+body.land #haiku .ku p{font-size:clamp(18px,calc(4.2*var(--vmin)),56px)}
+body.land #haiku .ku p:nth-child(2){margin-top:calc(9*var(--vmin))}
+body.land #haiku .ku p:nth-child(3){margin-top:calc(18*var(--vmin))}
+body.land #haiku .src{font-size:clamp(11px,calc(1.7*var(--vmin)),22px);margin-top:calc(2.4*var(--vmin));align-self:flex-end}
 body.land #hint{top:calc(4*var(--vmin));font-size:clamp(11px,calc(1.6*var(--vmin)),18px)}
 
 /* ---------- 縦画面（9:16 の壁掛け）---------- */
-body.port #title{left:50%;top:50%;transform:translate(-50%,-50%);flex-direction:row-reverse;
+body.port #title{left:56%;top:51%;transform:translate(-50%,-50%);flex-direction:row-reverse;
   gap:calc(4*var(--vw))}
 /* 文字数 --n に応じて縮め、短い名前は幅基準で最大化 */
-body.port #name{font-size:min(calc(28*var(--vw)),calc(48*var(--vh)/var(--n,3)));letter-spacing:.1em}
+body.port #name{font-size:min(calc(28*var(--vw)),calc(44*var(--vh)/var(--n,3)));letter-spacing:.1em}
 body.port #name span{line-height:1.1}
 body.port #yomi{font-size:clamp(16px,calc(4.4*var(--vw)),48px)}
 body.port #koyomi{left:calc(8*var(--vw));top:calc(6*var(--vh))}
 body.port #date{font-size:clamp(18px,calc(4.4*var(--vw)),48px)}
 body.port #clock{font-size:clamp(56px,calc(17*var(--vw)),190px)}
-body.port #hex{right:calc(8*var(--vw));top:calc(6.4*var(--vh));font-size:clamp(12px,calc(2.6*var(--vw)),24px);
-  writing-mode:vertical-rl}
 body.port #sekki{left:calc(8*var(--vw));bottom:calc(6*var(--vh));padding-left:calc(3*var(--vw))}
 body.port #sekki .s{font-size:clamp(18px,calc(5*var(--vw)),54px)}
 body.port #sekki .k{font-size:clamp(22px,calc(6.4*var(--vw)),72px)}
@@ -100,6 +111,12 @@ body.port #moon{right:calc(8*var(--vw));bottom:calc(6*var(--vh));text-align:righ
 body.port #moon svg{width:clamp(56px,calc(16*var(--vw)),170px);margin:0 0 calc(1*var(--vh)) auto}
 body.port #moon .mn{font-size:clamp(14px,calc(3.6*var(--vw)),40px)}
 body.port #moon .ma{font-size:clamp(11px,calc(2.4*var(--vw)),26px)}
+body.port #haiku{left:calc(9*var(--vw));top:50%;transform:translateY(-50%)}
+body.port #haiku .ku{gap:calc(1.6*var(--vw))}
+body.port #haiku .ku p{font-size:clamp(16px,calc(4.1*var(--vw)),46px)}
+body.port #haiku .ku p:nth-child(2){margin-top:calc(5*var(--vh))}
+body.port #haiku .ku p:nth-child(3){margin-top:calc(10*var(--vh))}
+body.port #haiku .src{font-size:clamp(11px,calc(2.2*var(--vw)),22px);margin-top:calc(1.6*var(--vh))}
 body.port #hint{top:calc(2.4*var(--vh));font-size:clamp(11px,calc(2.4*var(--vw)),20px)}
 
 @media (prefers-reduced-motion:reduce){body,#stage,.t,#name span,#yomi span,#clock{transition:none}}
@@ -110,7 +127,7 @@ body.port #hint{top:calc(2.4*var(--vh));font-size:clamp(11px,calc(2.4*var(--vw))
   <div id="hint"></div>
   <div id="koyomi"><div id="date" class="t"></div><div id="clock" class="t"></div></div>
   <div id="title"><p id="yomi"></p><h1 id="name"></h1></div>
-  <div id="hex" class="t"></div>
+  <div id="haiku"><div class="ku"></div><div class="src t"></div></div>
   <div id="sekki" class="t"><div class="s"></div><div class="k"></div></div>
   <div id="moon" class="t"><svg viewBox="-52 -52 104 104"></svg><div class="mn"></div><div class="ma"></div></div>
 </div>
@@ -130,6 +147,68 @@ const COLORS = {
 11:[["紅赤","べにあか","#D9333F"],["唐茶","からちゃ","#783C1D"],["黒茶","くろちゃ","#583822"],["栗皮茶","くりかわちゃ","#6D3C32"],["憲法色","けんぽういろ","#543F32"],["黒","くろ","#2B2B2B"],["呂色","ろいろ","#0C0C0C"],["漆黒","しっこく","#0D0015"],["鉄黒","てつぐろ","#281A14"],["檳榔子染","びんろうじぞめ","#433D3C"],["暗紅色","あんこうしょく","#74325C"],["中黄","ちゅうき","#FFEA00"],["山鳩色","やまばといろ","#767C6B"],["鶸茶","ひわちゃ","#8C8861"],["根岸色","ねぎしいろ","#938B4B"],["岩井茶","いわいちゃ","#6B6F59"],["茶鼠","ちゃねずみ","#A99E93"],["鉛丹色","えんたんいろ","#EC6D51"],["赤","あか","#E60033"],["枯色","かれいろ","#E0C99D"],["青褐","あおかち","#393E4F"],["銀煤竹","ぎんすすたけ","#856859"],["承和色","そがいろ","#FFDC00"],["灰茶","はいちゃ","#98623C"],["素色","そしょく","#EAE5E3"],["絹鼠","きぬねず","#DDDCD6"],["暁鼠","あかつきねず","#D3CFD9"],["桔梗鼠","ききょうねず","#95949A"],["利休白茶","りきゅうしらちゃ","#B3ADA0"],["丼鼠","どぶねずみ","#595455"]],
 12:[["枯野色","かれのいろ","#D3CBC6"],["留紺","とめこん","#1C305C"],["赤紫","あかむらさき","#EB6EA5"],["黒紅","くろべに","#302833"],["天鵞絨","びろうど","#2F5D50"],["革色","かわいろ","#475950"],["熨斗目花色","のしめはないろ","#426579"],["洗朱","あらいしゅ","#D0826C"],["空色鼠","そらいろねず","#BDCBD2"],["海松茶","みるちゃ","#5A544B"],["若紫","わかむらさき","#BC64A4"],["紅掛空色","べにかけそらいろ","#8491C3"],["紅掛花色","べにかけはないろ","#4D5AAF"],["蘇芳香","すおうこう","#A86965"],["紅檜皮","べにひはだ","#7B4741"],["土器色","かわらけいろ","#C37854"],["錆鉄御納戸","さびてつおなんど","#485859"],["樺茶","かばちゃ","#726250"],["甚三紅","じんざもみ","#EE827C"],["本紫","ほんむらさき","#65318E"],["青紫","あおむらさき","#674196"],["紅紫","べにむらさき","#B44C97"],["纁","そひ","#E0815E"],["遠州茶","えんしゅうちゃ","#CA8269"],["宗伝唐茶","そうでんからちゃ","#A16D5D"],["煤色","すすいろ","#887F7A"],["長春色","ちょうしゅんいろ","#C97586"],["乳白色","にゅうはくしょく","#F3F3F3"]]
 };
+// 芭蕉の句（週替わり）。[開始月日, 上五／中七／下五, 出典・場所]
+// 奥の細道（元禄2年の旅程を新暦の季節に合わせて配置）を軸に、冬〜早春は他の紀行・句集から
+const HAIKU=[
+["01-01","元日は／田毎の日こそ／恋しけれ","更科紀行"],
+["01-08","雪の朝／独り干鮭を／噛み得たり","江戸"],
+["01-15","埋火や／壁には客の／影ぼうし","冬の句"],
+["01-22","うぐひすや／餅に糞する／縁の先","葛の松原"],
+["02-01","春なれや／名もなき山の／薄霞","野ざらし紀行"],
+["02-08","梅が香に／のっと日の出る／山路かな","炭俵"],
+["02-15","梅白し／昨日や鶴を／盗まれし","野ざらし紀行"],
+["02-22","鐘消えて／花の香は撞く／夕哉","春の句"],
+["03-01","草の戸も／住み替はる代ぞ／雛の家","奥の細道・深川"],
+["03-10","山路来て／何やらゆかし／すみれ草","野ざらし紀行"],
+["03-20","古池や／蛙飛びこむ／水の音","春の日"],
+["03-28","春雨や／蓬をのばす／草の道","春の句"],
+["04-05","花の雲／鐘は上野か／浅草か","続虚栗"],
+["04-12","四方より／花吹入れて／鳰の波","春の句"],
+["04-20","行く春を／近江の人と／惜しみける","猿蓑"],
+["04-27","行く春や／鳥啼き魚の／目は泪","奥の細道・千住"],
+["05-05","あらたふと／青葉若葉の／日の光","奥の細道・日光"],
+["05-12","暫時は／滝に籠るや／夏の初め","奥の細道・裏見の滝"],
+["05-19","野を横に／馬牽きむけよ／ほととぎす","奥の細道・那須"],
+["05-26","ほととぎす／大竹藪を／もる月夜","夏の句"],
+["06-01","田一枚／植ゑて立ち去る／柳かな","奥の細道・遊行柳"],
+["06-08","風流の／初めや奥の／田植歌","奥の細道・須賀川"],
+["06-15","早苗とる／手もとや昔／しのぶ摺","奥の細道・信夫"],
+["06-22","夏草や／兵どもが／夢の跡","奥の細道・平泉"],
+["06-29","五月雨の／降りのこしてや／光堂","奥の細道・平泉"],
+["07-06","五月雨を／あつめて早し／最上川","奥の細道・大石田"],
+["07-13","閑さや／岩にしみ入る／蝉の声","奥の細道・立石寺"],
+["07-20","雲の峰／幾つ崩れて／月の山","奥の細道・月山"],
+["07-27","暑き日を／海に入れたり／最上川","奥の細道・酒田"],
+["08-03","象潟や／雨に西施が／ねぶの花","奥の細道・象潟"],
+["08-10","文月や／六日も常の／夜には似ず","奥の細道・直江津"],
+["08-17","荒海や／佐渡によこたふ／天河","奥の細道・出雲崎"],
+["08-24","一家に／遊女も寝たり／萩と月","奥の細道・市振"],
+["08-31","早稲の香や／分け入る右は／有磯海","奥の細道・越中"],
+["09-07","あかあかと／日はつれなくも／秋の風","奥の細道・金沢"],
+["09-14","むざんやな／甲の下の／きりぎりす","奥の細道・小松"],
+["09-21","石山の／石より白し／秋の風","奥の細道・那谷"],
+["09-28","山中や／菊はたをらぬ／湯の匂","奥の細道・山中温泉"],
+["10-05","名月や／北国日和／定めなき","奥の細道・敦賀"],
+["10-12","蛤の／ふたみに別れ／行く秋ぞ","奥の細道・大垣"],
+["10-19","物いへば／唇寒し／秋の風","芭蕉庵小文庫"],
+["10-26","菊の香や／奈良には古き／仏たち","笈日記"],
+["11-02","秋深き／隣は何を／する人ぞ","笈日記"],
+["11-09","この道や／行く人なしに／秋の暮","其便"],
+["11-16","旅人と／我名よばれん／初しぐれ","笈の小文"],
+["11-23","旅に病んで／夢は枯野を／かけ廻る","病中吟"],
+["12-01","初しぐれ／猿も小蓑を／ほしげなり","猿蓑"],
+["12-08","初雪や／水仙の葉の／たわむまで","冬の句"],
+["12-15","冬籠り／またよりそはん／此はしら","冬の句"],
+["12-22","海くれて／鴨の声／ほのかに白し","野ざらし紀行"],
+["12-29","年暮れぬ／笠きて草鞋／はきながら","野ざらし紀行"]
+];
+function haikuFor(d){
+  const key=String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  let pick=HAIKU[HAIKU.length-1];
+  for(const h of HAIKU){if(h[0]<=key)pick=h}
+  return pick;
+}
+
 const SEKKI=[["立春","りっしゅん"],["雨水","うすい"],["啓蟄","けいちつ"],["春分","しゅんぶん"],["清明","せいめい"],["穀雨","こくう"],["立夏","りっか"],["小満","しょうまん"],["芒種","ぼうしゅ"],["夏至","げし"],["小暑","しょうしょ"],["大暑","たいしょ"],["立秋","りっしゅう"],["処暑","しょしょ"],["白露","はくろ"],["秋分","しゅうぶん"],["寒露","かんろ"],["霜降","そうこう"],["立冬","りっとう"],["小雪","しょうせつ"],["大雪","たいせつ"],["冬至","とうじ"],["小寒","しょうかん"],["大寒","だいかん"]];
 const KO=[["東風解凍","はるかぜこおりをとく"],["黄鶯睍睆","うぐいすなく"],["魚上氷","うおこおりをいずる"],
 ["土脉潤起","つちのしょううるおいおこる"],["霞始靆","かすみはじめてたなびく"],["草木萌動","そうもくめばえいずる"],
@@ -211,7 +290,10 @@ function draw(){
   const nameEl=document.getElementById('name');
   nameEl.innerHTML=vert(c[0]); nameEl.style.setProperty('--n',[...c[0]].length);
   document.getElementById('yomi').innerHTML=vert(c[1]);
-  document.getElementById('hex').textContent=c[2];
+  const hk=haikuFor(d), parts=hk[1].split('／');
+  let gi=0;
+  document.querySelector('#haiku .ku').innerHTML=parts.map(ph=>'<p>'+[...ph].map(ch=>`<span style="--i:${gi++}"${/[ー〜]/.test(ch)?' class="r"':''}>${ch}</span>`).join('')+'</p>').join('');
+  document.querySelector('#haiku .src').textContent='芭蕉　'+hk[2];
   document.getElementById('date').textContent=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${WD[d.getDay()]}）`;
   const lon=sunLon(n), x=((lon-315)+360)%360;
   const s=SEKKI[Math.floor(x/15)], k=KO[Math.floor(x/5)];
@@ -233,7 +315,7 @@ function tick(){
   const el=document.getElementById('clock');
   const text=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   if(shownMin===null){el.textContent=text}
-  else{el.classList.add('swap');setTimeout(()=>{el.textContent=text;el.classList.remove('swap')},900)}
+  else{el.classList.add('swap');setTimeout(()=>{el.textContent=text;el.classList.remove('swap')},1500)}
   shownMin=key;
   if(key===0)render();
 }
