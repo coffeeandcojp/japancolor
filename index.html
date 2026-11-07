@@ -18,7 +18,6 @@
   --vw:1vw; --vh:1vh; --vmin:1vmin;
   --dx:0px; --dy:0px; --rot:none;
   box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%;background:var(--bg)}
 #stage,#stage *,#panel,#panel *{touch-action:none}
@@ -27,7 +26,8 @@ body{margin:0;height:100%;overflow:hidden;touch-action:none;overscroll-behavior:
   transition:background-color 2.4s ease,color 2.4s ease;cursor:none;
   -webkit-font-smoothing:antialiased;font-feature-settings:"palt"}
 body.dark{--ink:#F4F1EA;--ink-soft:rgba(244,241,234,.66);--line:rgba(244,241,234,.30)}
-#stage{position:absolute;top:0;left:0;width:100%;height:100%;
+#stage{position:absolute;top:env(safe-area-inset-top,0px);left:0;width:100%;
+  height:calc(100% - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
   transform:var(--rot) translate(var(--dx),var(--dy));transform-origin:0 0;
   transition:transform 60s linear}
 body.rot #stage{width:100vh;height:100vw;transition:none}
@@ -119,7 +119,7 @@ body.port #title{left:52%;top:51%;transform:translate(-50%,-50%);flex-direction:
 body.port #name{font-size:min(calc(28*var(--vw)),calc(46*var(--vh)/var(--n,3)));letter-spacing:.1em}
 body.port #name span{line-height:1.1}
 body.port #yomi{font-size:clamp(16px,calc(4.4*var(--vw)),48px)}
-body.port #koyomi{left:calc(8*var(--vw));top:calc(6*var(--vh))}
+body.port #koyomi{left:calc(8*var(--vw));top:calc(4.5*var(--vh))}
 body.port #date{font-size:clamp(18px,calc(4.4*var(--vw)),48px)}
 body.port #koku{font-size:clamp(36px,calc(8*var(--vw)),100px)}
 body.port #koku .kr{margin-left:.15em;flex-basis:100%;margin-top:.25em}
@@ -142,6 +142,7 @@ body.port #haiku .src{font-size:clamp(11px,calc(2.2*var(--vw)),22px);margin-top:
 body.port #hint{top:calc(2.4*var(--vh));font-size:clamp(11px,calc(2.4*var(--vw)),20px)}
 
 /* 手で日送りしたときは速く */
+body.nofx *,body.nofx{transition:none!important;animation:none!important}
 body.fast{transition-duration:.8s}
 body.fast .t,body.fast #name span,body.fast #yomi span,body.fast #haiku .ku p span{transition-duration:.55s;transition-delay:calc(var(--i,0)*35ms)}
 /* 毎分の小さな仕掛け：時計と一緒に、どれか一つのブロックが墨を入れ直すように溶け変わる */
@@ -150,7 +151,7 @@ body.fast .t,body.fast #name span,body.fast #yomi span,body.fast #haiku .ku p sp
 /* ---------- 色見本帳（月の一覧パネル）---------- */
 #panel{position:absolute;top:0;left:0;width:100%;height:100%;box-sizing:border-box;
   background:#ECE8E1;color:#2A2724;transform:translateY(-100%);transition:transform .7s cubic-bezier(.2,.8,.2,1);
-  display:flex;flex-direction:column;padding:calc(4*var(--vmin)) calc(5*var(--vmin));z-index:5}
+  display:flex;flex-direction:column;padding:calc(4*var(--vmin) + env(safe-area-inset-top,0px)) calc(5*var(--vmin)) calc(4*var(--vmin) + env(safe-area-inset-bottom,0px));z-index:5}
 #panel.open{transform:translateY(0)}
 #panel header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:calc(2.4*var(--vmin))}
 #panel .wa{font-size:clamp(22px,calc(5*var(--vmin)),64px);letter-spacing:.2em;font-weight:500}
@@ -168,6 +169,19 @@ body.port #panel .grid{grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr}
 #panel .tile.today .d::after{content:"・今日";letter-spacing:.1em}
 #panel .tile.dk{color:#F4F1EA}
 #panel .tile.lt{color:#2A2724}
+/* 壁紙モード（?wall=1）：ロック画面の時計と重ならないよう、刻・線香・日付を省いて色名を少し下げる */
+body.wall #koyomi,body.wall #koh,body.wall #hint{display:none}
+body.wall #stage{transform:none}
+/* iOS は壁紙を少し拡大して表示し、下部にライト・カメラのボタンが乗るので、内側に余白を取る */
+body.wall.port #title{left:52%;top:52%}
+body.wall.port #name{font-size:min(calc(27*var(--vw)),calc(40*var(--vh)/var(--n,3)))}
+body.wall.port #haiku{left:calc(15*var(--vw));top:48%}
+body.wall.port #haiku .ku p{font-size:clamp(14px,calc(3.3*var(--vw)),36px)}
+body.wall.port #sekki{left:calc(15*var(--vw));bottom:calc(25*var(--vh))}
+body.wall.port #sekki .s{font-size:clamp(16px,calc(4.4*var(--vw)),48px)}
+body.wall.port #sekki .k{font-size:clamp(20px,calc(5.6*var(--vw)),64px)}
+body.wall.port #moon{right:calc(15*var(--vw));bottom:calc(25*var(--vh))}
+body.wall.port #moon svg{width:clamp(48px,calc(13*var(--vw)),140px)}
 @media (prefers-reduced-motion:reduce){body,#stage,.t,#name span,#yomi span{transition:none}}
 </style>
 </head>
@@ -379,7 +393,9 @@ function lum(hex){const n=parseInt(hex.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255
   return .2126*f(r)+.7152*f(g)+.0722*f(b)}
 
 let offset=0; // 日付オフセット（リモコン左右でプレビュー）
-function targetDate(){const d=new Date();d.setDate(d.getDate()+offset);return d}
+function targetDate(){
+  const fixed=QS.get('date'); if(fixed){const [y,m,dd]=fixed.split('-').map(Number);return new Date(y,m-1,dd,12)}
+  const d=new Date();d.setDate(d.getDate()+offset);return d}
 
 // じわっと消えて、じわっと現れる
 let fading=null;
@@ -464,7 +480,10 @@ function drift(){const x=(Math.random()*2-1)*1.2,y=(Math.random()*2-1)*1.2;
 
 // ---- 向きの判定 ----
 // ?rot=90 / ?rot=270 : Fire TV のように横出力しかできない機器を、物理的に縦置きしたモニターへ映すとき
-const ROT=parseInt(new URLSearchParams(location.search).get('rot'))||0;
+const QS=new URLSearchParams(location.search);
+const ROT=parseInt(QS.get('rot'))||0;
+const WALL=QS.get('wall')==='1';
+if(WALL)document.body.classList.add('wall');
 function applyOrientation(){
   const b=document.body, r=document.documentElement.style;
   if(ROT===90||ROT===270){
@@ -526,8 +545,11 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='f'||e.key==='F'){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}
 });
 applyOrientation();
+if(WALL){draw();document.body.classList.add('nofx')}
+else{
 document.getElementById('stage').classList.add('out');draw();
 requestAnimationFrame(()=>requestAnimationFrame(()=>document.getElementById('stage').classList.remove('out')));
+}
 setTimeout(tick,1600);setInterval(tick,1000);setInterval(drift,180000);
 </script>
 </body>
